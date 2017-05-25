@@ -10,4 +10,4 @@ Tested only on MacBookPro09
           +more samples
           +more testing(unit tests) 
 
-![node doc](https://www.nodejs.org/api/events.html "node doc")
+https://www.nodejs.org/api/events.html
