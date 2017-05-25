@@ -2,8 +2,13 @@
 #include "EventEmitter.h"
 using namespace std;
 
+struct Event 
+{
+    std::string name;
+};
+
 // make our class that inherits from EventEmitter
-class Car : public EventEmitter<> // if you want to provide your own Event Class pass it in the template
+class Car : public EventEmitter<Event> // you should provide your own Event Class and pass it in the template
 {
 public:
     int x, y; // just for now
@@ -20,7 +25,7 @@ int main(int argc, char* argv[])
     c.x = 5;
     c.y = 8;
 
-    /* assign listeners to events */
+/* assign listeners to events */
 
     // it could take void parametres
     c.onEvent("move", [&c]() { // notice how to access car members
@@ -44,12 +49,12 @@ int main(int argc, char* argv[])
         cout << "stopped\n";
     });
 
-    c.emitEvent("move"); // now all move listeners will be called in order (synchronous)
+    c.emitEvent("move", {"move event info"}); // now all move listeners will be called in order (synchronous)
 
 
 
 
-    /* copy listeners */
+/* copy listeners */
 
     auto lis = c.getListeners("move"); // this is acopy vector of listeners
     Event e{ "foo-bar-event" }; // we should make out event object so we could pass it
@@ -58,10 +63,11 @@ int main(int argc, char* argv[])
 
 
 
-    /* remove listeners */
+/* remove listeners */
+
     c.removeAllListeners("move");
 
-    c.emitEvent("move"); // this would call nothing
+    c.emitEvent("move", {"move event info"}); // this would call nothing
 
     return 0;
 }
