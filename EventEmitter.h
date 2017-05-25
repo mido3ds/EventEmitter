@@ -22,7 +22,7 @@ class EventEmitter
 {
     using EventFunction_t = function<void(const T_EventClass&)>;
 
-protected:
+private:
     unordered_map<T_EventKeyClass, vector<EventFunction_t>> functions_bundle; // to store functions with its keys
 
 public:
