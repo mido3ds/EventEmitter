@@ -9,3 +9,5 @@ Tested only on MacBookPro09
           +asynchronous functions
           +more samples
           +more testing(unit tests) 
+
+![node doc](nodejs.org/api/events.html "node doc")
