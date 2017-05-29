@@ -116,6 +116,24 @@ public:
         onEvent(eventKey, func, options);
     }
 
+    /* store this listener function with this eventKey at beginning
+     * @eventKey: key to event, if duplicated the function will be added to the previous
+     * @listener: function/lambda that should be called when event is emitted
+     * @options: function configurationss
+     */
+    void prependListener(T_EventKeyClass eventKey, EventFunction_t listener, int options = 0) {
+        onEvent(eventKey, listener, options | prepend);
+    }
+
+    /* overload, function could take no Event
+     * @eventKey: key to event, if duplicated the function will be added to the previous
+     * @listener: function/lambda that should be called when event is emitted
+     * @options: function configurationss
+     */
+    void prependListener(T_EventKeyClass eventKey, function<void()> listener, int options = 0) {
+        onEvent(eventKey, listener, options | prepend);
+    }
+
     /* fire the event resulting in calling all functions in order, if event not found, nothing happens
      * @eventKey: of event to fire
      * @eventInfo: event object to send to functions to be called
