@@ -57,6 +57,42 @@ public:
             });
     }
 
+    /* same as onEvent, but function removes itself after calling 
+     * @eventKey: key to event, if duplicated the function will be added to the previous
+     * @listener: function/lambda that should be called when event is emitted
+     * @isAsync: whether this listener should be called in another therad or not
+     */
+    void once(T_EventKeyClass eventKey, EventFunction_t listener, bool isAsync=false) {
+        // make a function that can remove itself
+        EventFunction_t func;
+        func = [&listener, this, &eventKey, &func](const T_EventClass& evt) {
+            listener(evt);
+
+            this->removeListener(eventKey, func);
+        };
+
+        // then call onEvent to add it
+        onEvent(eventKey, func, isAsync);
+    }
+
+    /* overload, function could take no Event
+     * @eventKey: key to event, if duplicated the function will be added to the previous
+     * @listener: function/lambda that should be called when event is emitted
+     * @isAsync: whether this listener should be called in another therad or not
+     */
+    void once(T_EventKeyClass eventKey, function<void()> listener, bool isAsync=false) {
+        // make a function that can remove itself
+        EventFunction_t func;
+        func = [&listener, this, &eventKey, &func](const T_EventClass& evt) {
+            listener();
+
+            this->removeListener(eventKey, func);
+        };
+
+        // then call onEvent to add it
+        onEvent(eventKey, func, isAsync);
+    }
+
     /* fire the event resulting in calling all functions in order, if event not found, nothing happens
      * @eventKey: of event to fire
      * @eventInfo: event object to send to functions to be called
@@ -120,7 +156,7 @@ public:
 
     /* get listeners count if event is found, else 0
      * @eventKey: key to event to find
-    */
+     */
     int listenersCount(T_EventKeyClass eventKey) {
         // if found
         if (functions_bundle.find(eventKey) != functions_bundle.end())
