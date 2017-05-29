@@ -27,42 +27,65 @@ private:
     unordered_map<T_EventKeyClass, vector<EventFunction_t>> functions_bundle; // to store functions with its keys
 
 public:
+    // that can be passed as bits 
+    enum Options {
+        isAsync,
+        prepend
+    };
+
     /* store this listener function with this eventKey
      * @eventKey: key to event, if duplicated the function will be added to the previous
      * @listener: function/lambda that should be called when event is emitted
-     * @isAsync: whether this listener should be called in another therad or not
+     * @options: function configurationss
      */
-    void onEvent(T_EventKeyClass eventKey, EventFunction_t listener, bool isAsync=false) {
-        if (isAsync) // wrap it in a thread to be asyncrounous
-            functions_bundle[eventKey].push_back([&listener](const T_EventClass& evt) {
+    void onEvent(T_EventKeyClass eventKey, EventFunction_t listener, int options = 0) {
+        // func to store
+        EventFunction_t func = listener;
+
+        if (options & isAsync) {
+            func = [&listener](const T_EventClass& evt) {
                 thread(listener, evt);
-            });
-        else // add the function immediately
-            functions_bundle[eventKey].push_back(listener);
+            };
+        } else if (options & prepend) {
+            functions_bundle[eventKey].insert(functions_bundle[eventKey].begin(), func);
+
+            return;
+        }
+
+        // not prepend
+        functions_bundle[eventKey].push_back(func);
     }
 
     /* overload, function could take no Event
      * @eventKey: key to event, if duplicated the function will be added to the previous
      * @listener: function/lambda that should be called when event is emitted
-     * @isAsync: whether this listener should be called in another therad or not
+     * @options: function configurationss
      */
-    void onEvent(T_EventKeyClass eventKey, function<void()> listener, bool isAsync=false) {
-        if (isAsync) // wrap it in a thread to be asyncrounous
-            functions_bundle[eventKey].push_back([&listener](const T_EventClass& evt) {
+    void onEvent(T_EventKeyClass eventKey, function<void()> listener, int options = 0) {
+        // func to store
+        EventFunction_t func = [&listener](const T_EventClass& evt) {
+            listener();
+        };
+
+        if (options & isAsync) {
+            func = [&listener](const T_EventClass& evt) {
                 thread(listener);
-            });
-        else // add the function immediately
-            functions_bundle[eventKey].push_back([&listener](const T_EventClass& evt) {
-                listener();
-            });
+            };
+        } else if (options & prepend) {
+            functions_bundle[eventKey].insert(functions_bundle[eventKey].begin(), func);
+            return;
+        }
+
+        // not prepend
+        functions_bundle[eventKey].push_back(func);
     }
 
     /* same as onEvent, but function removes itself after calling 
      * @eventKey: key to event, if duplicated the function will be added to the previous
      * @listener: function/lambda that should be called when event is emitted
-     * @isAsync: whether this listener should be called in another therad or not
+     * @options: function configurationss
      */
-    void once(T_EventKeyClass eventKey, EventFunction_t listener, bool isAsync=false) {
+    void once(T_EventKeyClass eventKey, EventFunction_t listener, int options = 0) {
         // make a function that can remove itself
         EventFunction_t func;
         func = [&listener, this, &eventKey, &func](const T_EventClass& evt) {
@@ -72,15 +95,15 @@ public:
         };
 
         // then call onEvent to add it
-        onEvent(eventKey, func, isAsync);
+        onEvent(eventKey, func, options);
     }
 
     /* overload, function could take no Event
      * @eventKey: key to event, if duplicated the function will be added to the previous
      * @listener: function/lambda that should be called when event is emitted
-     * @isAsync: whether this listener should be called in another therad or not
+     * @options: function configurationss
      */
-    void once(T_EventKeyClass eventKey, function<void()> listener, bool isAsync=false) {
+    void once(T_EventKeyClass eventKey, function<void()> listener, int options = 0) {
         // make a function that can remove itself
         EventFunction_t func;
         func = [&listener, this, &eventKey, &func](const T_EventClass& evt) {
@@ -90,7 +113,7 @@ public:
         };
 
         // then call onEvent to add it
-        onEvent(eventKey, func, isAsync);
+        onEvent(eventKey, func, options);
     }
 
     /* fire the event resulting in calling all functions in order, if event not found, nothing happens
