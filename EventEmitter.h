@@ -16,10 +16,10 @@ using std::unordered_map;
 using std::thread;
 
 /* Inherit from it to add Event-Capturing-ability to your class 
- * @T_EventClass: class that holds event info when emitted, sent to function that should be run
+ * @T_EventClass: class that holds event info when emitted, sent to function that should be run, default is unordered_map
  * @T_EventKeyClass: class/type of key that distinguishes the event, default std::string, must be hashable
  */
-template<typename T_EventClass, typename T_EventKeyClass = std::string>
+template<typename T_EventClass = unordered_map, typename T_EventKeyClass = std::string>
 class EventEmitter 
 {
     using EventFunction_t = function<void(const T_EventClass&)>;
