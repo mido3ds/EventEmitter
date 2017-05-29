@@ -8,12 +8,14 @@
 #include <unordered_map>
 #include <vector>
 #include <string>
+#include <thread>
 
 using std::function;
 using std::vector;
 using std::unordered_map;
+using std::thread;
 
-/* Inheret from it to add Event-Capturing-ability to your class 
+/* Inherit from it to add Event-Capturing-ability to your class 
  * @T_EventClass: class that holds event info when emitted, sent to function that should be run
  * @T_EventKeyClass: class/type of key that distinguishes the event, default std::string, must be hashable
  */
@@ -29,21 +31,33 @@ public:
     /* store this listener function with this eventKey
      * @eventKey: key to event, if duplicated the function will be added to the previous
      * @listener: function/lambda that should be called when event is emitted
+     * @isAsync: whether this listener should be called in another therad or not
      */
-    void onEvent(T_EventKeyClass eventKey, EventFunction_t listener) 
+    void onEvent(T_EventKeyClass eventKey, EventFunction_t listener, bool isAsync=false) 
     {
-        functions_bundle[eventKey].push_back(listener);
+        if (isAsync) // wrap it in a thread to be asyncrounous
+            functions_bundle[eventKey].push_back([&listener](const T_EventClass& evt) {
+                thread(listener, evt);
+            });
+        else // add the function immediately
+            functions_bundle[eventKey].push_back(listener);
     }
 
     /* overload, function could take no Event
      * @eventKey: key to event, if duplicated the function will be added to the previous
      * @listener: function/lambda that should be called when event is emitted
+     * @isAsync: whether this listener should be called in another therad or not
      */
-    void onEvent(T_EventKeyClass eventKey, function<void()> listener) 
+    void onEvent(T_EventKeyClass eventKey, function<void()> listener, bool isAsync=false) 
     {
-        functions_bundle[eventKey].push_back([&listener](const T_EventClass& evt) {
-            listener();
-        });
+        if (isAsync) // wrap it in a thread to be asyncrounous
+            functions_bundle[eventKey].push_back([&listener](const T_EventClass& evt) {
+                thread(listener);
+            });
+        else // add the function immediately
+            functions_bundle[eventKey].push_back([&listener](const T_EventClass& evt) {
+                listener();
+            });
     }
 
     /* fire the event resulting in calling all functions in order, if event not found, nothing happens
