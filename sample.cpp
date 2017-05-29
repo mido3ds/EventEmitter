@@ -56,7 +56,7 @@ int main(int argc, char* argv[])
 
 /* copy listeners */
 
-    auto lis = c.getListeners("move"); // this is acopy vector of listeners
+    auto lis = c.listeners("move"); // this is acopy vector of listeners
     Event e{ "foo-bar-event" }; // we should make out event object so we could pass it
     for (auto l : lis)
         l(e);
